@@ -1,29 +1,26 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using EasyPacketSharp.Abstract;
 
-namespace EasyPacketSharp.Abstract
+namespace EasyPacketSharp
 {
     public class TcpStreamListener : IListener
     {
         private byte[] SharedBuffer { get; }
         private Socket Socket { get; }
 
-        public TcpStreamListener(EndPoint ep)
+        public TcpStreamListener()
         {
             SharedBuffer = new byte[1024];
             Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         }
 
-
-        public ISocket Create(EndPoint ep)
+        public TcpStreamListener(int port)
         {
-            return new TcpStreamListener(ep);
-        }
-
-        public ISocket Create(IPAddress ip, int port)
-        {
-            return new TcpStreamListener(new IPEndPoint(ip, port));
+            SharedBuffer = new byte[1024];
+            Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            Socket.Bind(new IPEndPoint(IPAddress.Any, port));
         }
 
         public void Write(string s)
@@ -46,6 +43,11 @@ namespace EasyPacketSharp.Abstract
             throw new System.NotImplementedException();
         }
 
+        public void Bind(int port)
+        {
+            Socket.Bind(new IPEndPoint(IPAddress.Any, port));
+        }
+
         public void Listen(int backlog)
         {
             Socket.Listen(backlog);
@@ -59,7 +61,6 @@ namespace EasyPacketSharp.Abstract
         private void OnAccepted(IAsyncResult ar)
         {
             var sock = Socket.EndAccept(ar);
-            var buf = new byte[1024];
             sock.BeginReceive(SharedBuffer, 0, SharedBuffer.Length, SocketFlags.None, OnReceived, sock);
             Accept();
         }
