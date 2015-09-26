@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConnectionState.cs" />
     <Compile Include="Abstract\IClient.cs" />
     <Compile Include="Abstract\IListener.cs" />
     <Compile Include="Abstract\ISocket.cs" />

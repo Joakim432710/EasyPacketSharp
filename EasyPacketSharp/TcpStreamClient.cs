@@ -7,17 +7,28 @@ namespace EasyPacketSharp
 {
     public class TcpStreamClient : IClient
     {
+        private ConnectionState State { get; set; }
+        private bool Connected { get; }
         private byte[] Buffer { get; }
         private Socket Socket { get; }
         public TcpStreamClient(EndPoint ep)
         {
+            Connected = false;
             Buffer = new byte[1024];
             Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            State = ConnectionState.Initialized;
         }
         public TcpStreamClient(IPAddress ip, int port)
         {
             Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            Socket.BeginConnect(new IPEndPoint(ip, port), OnConnected, null)
+            State = ConnectionState.Initialized;
+            Socket.BeginConnect(new IPEndPoint(ip, port), OnConnected, null);
+        }
+
+        public void Connect(IPAddress ip, int port)
+        {
+            if(State != ConnectionState.Initialized) throw new InvalidOperationException($"Cannot connect from state {State}"); //Custom Exception plz
+            Socket.BeginConnect(new IPEndPoint(ip, port), OnConnected, null);
         }
 
         public static ISocket Create(EndPoint ep)
@@ -49,8 +60,10 @@ namespace EasyPacketSharp
         {
             throw new System.NotImplementedException();
         }
+
         private void OnConnected(IAsyncResult ar)
         {
+            State = ConnectionState.Connected;
             Socket.BeginReceive(Buffer, 0, Buffer.Length, SocketFlags.None, OnReceive, null);
         }
 
@@ -64,7 +77,7 @@ namespace EasyPacketSharp
                 case SocketError.Success:
                     break;
                 case SocketError.Disconnecting:
-                    //Handle
+                    State = ConnectionState.Disconnected;
                     return;
             }
 
