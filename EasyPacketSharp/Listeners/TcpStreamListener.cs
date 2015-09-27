@@ -15,17 +15,24 @@ namespace EasyPacketSharp.Listeners
         private byte[] SharedBuffer { get; }
         public Socket Socket { get; }
 
-        public TcpStreamListener(InitializeSocketMethod clientMethod = null)
+        public TcpStreamListener(InitializeSocketMethod clientMethod = null, InitializeImmutablePacketMethod packetMethod = null)
         {
             SharedBuffer = new byte[1024];
             Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             if (clientMethod == null)
                 CreateClientMethod = CreateStandardSocket;
+            if (packetMethod == null)
+                CreatePacketMethod = CreateStandardPacket;
         }
 
         private ISocket CreateStandardSocket(Socket s)
         {
             return new StandardSocket(s);
+        }
+
+        private IImmutablePacket CreateStandardPacket(byte[] bytes, Encoding enc)
+        {
+            return new ImmutablePacket(bytes, enc);
         }
 
         public TcpStreamListener(int port)

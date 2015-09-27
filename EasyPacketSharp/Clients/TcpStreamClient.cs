@@ -13,16 +13,22 @@ namespace EasyPacketSharp.Clients
         private ConnectionState State { get; set; }
         private byte[] Buffer { get; }
 
-        public TcpStreamClient(EndPoint ep, long bufferSize = 1024, InitializeImmutablePacketMethod createPacketMethod = null)
+        public TcpStreamClient(EndPoint ep, long bufferSize = 1024, InitializeImmutablePacketMethod packetMethod = null)
         {
             Buffer = new byte[bufferSize];
             Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             State = ConnectionState.Initialized;
-            //TODO: Default initialize InitializePacket createPacketMethod with a readable stream
+            if (packetMethod == null)
+                CreatePacketMethod = CreateStandardPacket;
             Connect(ep);
         }
         public TcpStreamClient(IPAddress ip, int port, long bufferSize = 1024) : this(new IPEndPoint(ip, port), bufferSize) { }
 
+
+        private IImmutablePacket CreateStandardPacket(byte[] bytes, Encoding enc)
+        {
+            return new ImmutablePacket(bytes, enc);
+        }
 
         #region ISocket Implementation
 
