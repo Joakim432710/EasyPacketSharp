@@ -58,7 +58,6 @@
     <Compile Include="Generic\StandardSocket.cs" />
     <Compile Include="Generic\StringExtension.cs" />
     <Compile Include="Generic\MutablePacket.cs" />
-    <Compile Include="Packets\Packet.cs" />
     <Compile Include="Listeners\TcpStreamListener.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
