@@ -38,12 +38,14 @@
         ///     or
         ///         Return the entire packet, and keep the immutable state until Unlock is explicitly called by a user
         /// </remarks>
+        /// <exception cref="System.InvalidOperationException">Thrown if the packet is already locked</exception>
         /// <returns>The packet data</returns>
         byte[] Lock();
 
         /// <summary>
         ///     Unlocks the buffer and permits mutations again
         /// </summary>
+        /// <exception cref="System.InvalidOperationException">Thrown if the packet is not locked</exception>
         void Unlock();
     }
 }
