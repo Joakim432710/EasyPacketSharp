@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using EasyPacketSharp.Abstract;
 
 namespace EasyPacketSharp.Listeners
@@ -23,25 +24,26 @@ namespace EasyPacketSharp.Listeners
             Socket.Bind(new IPEndPoint(IPAddress.Any, port));
         }
 
-        public void Write(string s)
+        #region ISocket Implementation
+
+        public event OnConnectionChangedMethod OnConnection;
+
+        public event OnConnectionChangedMethod OnDisconnection;
+
+        public event OnPacketMethod OnPacket;
+
+        public InitializeImmutablePacketMethod CreatePacketMethod { get; set; }
+
+        public Encoding Encoding { get; set; }
+
+        public void SendPacket(IPacket packet)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
-        public void WriteLine(string s)
-        {
-            throw new System.NotImplementedException();
-        }
+        #endregion ISocket Implementation 
 
-        public string ReadLine()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public string Read(int length)
-        {
-            throw new System.NotImplementedException();
-        }
+        #region IListener Implementation
 
         public void Bind(int port)
         {
@@ -68,7 +70,7 @@ namespace EasyPacketSharp.Listeners
         private void OnReceived(IAsyncResult ar)
         {
             var sock = ar.AsyncState as Socket;
-            if(sock == null) throw new ArgumentException("Invalid result passed to OnReceived. User-defined object was either null or not of type Socket.", nameof(ar));
+            if (sock == null) throw new ArgumentException("Invalid result passed to OnReceived. User-defined object was either null or not of type Socket.", nameof(ar));
             SocketError err;
             var bytesReceived = sock.EndReceive(ar, out err);
 
@@ -85,5 +87,7 @@ namespace EasyPacketSharp.Listeners
             Buffer.BlockCopy(SharedBuffer, 0, buf, 0, buf.Length);
             sock.BeginReceive(SharedBuffer, 0, SharedBuffer.Length, SocketFlags.None, OnReceived, sock);
         }
+
+        #endregion IListener Implementation
     }
 }

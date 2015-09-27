@@ -1,6 +1,6 @@
 ﻿namespace EasyPacketSharp.Abstract
 {
-    public interface IWriteablePacket : IPacket
+    public interface IMutablePacket : IPacket
     {
         /// <summary>
         ///     Writes a byte[] to the packet and moves the position to the next portion of the packet

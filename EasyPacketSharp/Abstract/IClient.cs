@@ -2,6 +2,7 @@
 
 namespace EasyPacketSharp.Abstract
 {
+
     public interface IClient : ISocket
     {
         /// <summary>

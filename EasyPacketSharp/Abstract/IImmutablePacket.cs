@@ -1,6 +1,9 @@
-﻿namespace EasyPacketSharp.Abstract
+﻿using System.Text;
+
+namespace EasyPacketSharp.Abstract
 {
-    public interface IReadablePacket : IPacket
+    public delegate IImmutablePacket InitializeImmutablePacketMethod(byte[] data, Encoding enc);
+    public interface IImmutablePacket : IPacket
     {
         /// <summary>
         ///     Reads a byte[] of Length <paramref name="length"/> from the packet and moves the position to the next portion of the packet
