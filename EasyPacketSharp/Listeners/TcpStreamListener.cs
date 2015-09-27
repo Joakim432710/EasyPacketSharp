@@ -3,7 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using EasyPacketSharp.Abstract;
 
-namespace EasyPacketSharp
+namespace EasyPacketSharp.Listeners
 {
     public class TcpStreamListener : IListener
     {

@@ -1,4 +1,4 @@
-﻿namespace EasyPacketSharp
+﻿namespace EasyPacketSharp.Generic
 {
     public enum ConnectionState : byte
     {

@@ -40,12 +40,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConnectionState.cs" />
+    <Compile Include="Abstract\IPacket.cs" />
+    <Compile Include="Abstract\IReadablePacket.cs" />
+    <Compile Include="Abstract\IWriteablePacket.cs" />
+    <Compile Include="Exceptions\InvalidCharacterException.cs" />
+    <Compile Include="Exceptions\OutOfBoundsException.cs" />
+    <Compile Include="Exceptions\ParseHostException.cs" />
+    <Compile Include="Generic\ConnectionState.cs" />
     <Compile Include="Abstract\IClient.cs" />
     <Compile Include="Abstract\IListener.cs" />
     <Compile Include="Abstract\ISocket.cs" />
-    <Compile Include="TcpStreamListener.cs" />
-    <Compile Include="TcpStreamClient.cs" />
+    <Compile Include="Exceptions\ConnectErrorException.cs" />
+    <Compile Include="Generic\StringExtension.cs" />
+    <Compile Include="Packets\Packet.cs" />
+    <Compile Include="Listeners\TcpStreamListener.cs" />
+    <Compile Include="Clients\TcpStreamClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -1,6 +1,4 @@
-﻿using System.Net;
-
-namespace EasyPacketSharp.Abstract
+﻿namespace EasyPacketSharp.Abstract
 {
     public interface ISocket
     {
