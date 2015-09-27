@@ -1,20 +1,31 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.Remoting.Messaging;
 using System.Text;
 using EasyPacketSharp.Abstract;
+using EasyPacketSharp.Clients;
+using EasyPacketSharp.Exceptions;
+using EasyPacketSharp.Generic;
 
 namespace EasyPacketSharp.Listeners
 {
     public class TcpStreamListener : IListener
     {
         private byte[] SharedBuffer { get; }
-        private Socket Socket { get; }
+        public Socket Socket { get; }
 
-        public TcpStreamListener()
+        public TcpStreamListener(InitializeSocketMethod clientMethod = null)
         {
             SharedBuffer = new byte[1024];
             Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            if (clientMethod == null)
+                CreateClientMethod = CreateStandardSocket;
+        }
+
+        private ISocket CreateStandardSocket(Socket s)
+        {
+            return new StandardSocket(s);
         }
 
         public TcpStreamListener(int port)
@@ -45,6 +56,8 @@ namespace EasyPacketSharp.Listeners
 
         #region IListener Implementation
 
+        public InitializeSocketMethod CreateClientMethod { private get; set; }
+
         public void Bind(int port)
         {
             Socket.Bind(new IPEndPoint(IPAddress.Any, port));
@@ -62,17 +75,19 @@ namespace EasyPacketSharp.Listeners
 
         private void OnAccepted(IAsyncResult ar)
         {
-            var sock = Socket.EndAccept(ar);
-            sock.BeginReceive(SharedBuffer, 0, SharedBuffer.Length, SocketFlags.None, OnReceived, sock);
+            if (CreateClientMethod == null)
+                throw new InvalidListenerStateException("The user has made runtime edits to the client that has put it in an invalid state. Make sure CreateClientMethod always has a value");
+            var sock = CreateClientMethod(Socket.EndAccept(ar));
+            sock.Socket.BeginReceive(SharedBuffer, 0, SharedBuffer.Length, SocketFlags.None, OnReceived, sock);
             Accept();
         }
 
         private void OnReceived(IAsyncResult ar)
         {
-            var sock = ar.AsyncState as Socket;
+            var sock = ar.AsyncState as ISocket;
             if (sock == null) throw new ArgumentException("Invalid result passed to OnReceived. User-defined object was either null or not of type Socket.", nameof(ar));
             SocketError err;
-            var bytesReceived = sock.EndReceive(ar, out err);
+            var bytesReceived = sock.Socket.EndReceive(ar, out err);
 
             switch (err)
             {
@@ -85,7 +100,9 @@ namespace EasyPacketSharp.Listeners
 
             var buf = new byte[bytesReceived];
             Buffer.BlockCopy(SharedBuffer, 0, buf, 0, buf.Length);
-            sock.BeginReceive(SharedBuffer, 0, SharedBuffer.Length, SocketFlags.None, OnReceived, sock);
+            sock.Socket.BeginReceive(SharedBuffer, 0, SharedBuffer.Length, SocketFlags.None, OnReceived, sock);
+
+            OnPacket?.Invoke(sock, CreatePacketMethod?.Invoke(buf, Encoding));
         }
 
         #endregion IListener Implementation

@@ -23,6 +23,12 @@
         void Focus(ulong at);
 
         /// <summary>
+        ///     Returns whether the packet is locked from mutations or not
+        ///     See <see cref="Lock"/> and <seealso cref="Unlock"/>
+        /// </summary>
+        bool Locked { get; }
+
+        /// <summary>
         ///     Returns the packet data     
         /// </summary>
         /// <remarks>

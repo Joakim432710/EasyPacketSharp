@@ -45,6 +45,7 @@
     <Compile Include="Abstract\IMutablePacket.cs" />
     <Compile Include="Clients\TcpStreamClient.cs" />
     <Compile Include="Exceptions\InvalidCharacterException.cs" />
+    <Compile Include="Exceptions\InvalidListenerStateException.cs" />
     <Compile Include="Exceptions\InvalidClientStateException.cs" />
     <Compile Include="Exceptions\OutOfBoundsException.cs" />
     <Compile Include="Exceptions\ParseHostException.cs" />
@@ -53,6 +54,7 @@
     <Compile Include="Abstract\IListener.cs" />
     <Compile Include="Abstract\ISocket.cs" />
     <Compile Include="Exceptions\ConnectErrorException.cs" />
+    <Compile Include="Generic\StandardSocket.cs" />
     <Compile Include="Generic\StringExtension.cs" />
     <Compile Include="Packets\Packet.cs" />
     <Compile Include="Listeners\TcpStreamListener.cs" />

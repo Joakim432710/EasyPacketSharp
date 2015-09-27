@@ -1,15 +1,20 @@
-﻿using System.Text;
+﻿using System.Net.Sockets;
+using System.Text;
 
 namespace EasyPacketSharp.Abstract
 {
-    public delegate void OnPacketMethod(IClient obj, IImmutablePacket packet);
+    public delegate void OnPacketMethod(ISocket obj, IImmutablePacket packet);
 
-    public delegate void OnDisconnectMethod(IClient obj);
+    public delegate void OnDisconnectMethod(ISocket obj);
 
-    public delegate void OnConnectionChangedMethod(IClient obj);
+    public delegate void OnConnectionChangedMethod(ISocket obj);
+
+    public delegate ISocket InitializeSocketMethod(Socket s);
 
     public interface ISocket
     {
+        Socket Socket { get; }
+
         /// <summary>
         ///     Occurs whenever a connection has been established using the socket
         /// </summary>

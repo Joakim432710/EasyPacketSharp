@@ -10,10 +10,8 @@ namespace EasyPacketSharp.Clients
 {
     public class TcpStreamClient : IClient
     {
-
         private ConnectionState State { get; set; }
         private byte[] Buffer { get; }
-        private Socket Socket { get; }
 
         public TcpStreamClient(EndPoint ep, long bufferSize = 1024, InitializeImmutablePacketMethod createPacketMethod = null)
         {
@@ -28,6 +26,10 @@ namespace EasyPacketSharp.Clients
 
         #region ISocket Implementation
 
+        public Socket Socket { get; }
+
+        public Encoding Encoding { get; set; }
+
         public InitializeImmutablePacketMethod CreatePacketMethod { private get; set; }
 
         public event OnConnectionChangedMethod OnConnection;
@@ -36,9 +38,12 @@ namespace EasyPacketSharp.Clients
 
         public event OnPacketMethod OnPacket;
 
-        public void SendPacket(IPacket p) { }
-
-        public Encoding Encoding { get; set; }
+        public void SendPacket(IPacket p)
+        {
+            Socket.Send(p.Lock());
+            if(p.Locked)
+                p.Unlock();
+        }
 
         #endregion ISocket Implementation
 
