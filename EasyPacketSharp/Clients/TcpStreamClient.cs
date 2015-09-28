@@ -13,7 +13,7 @@ namespace EasyPacketSharp.Clients
         private ConnectionState State { get; set; }
         private byte[] Buffer { get; }
 
-        public TcpStreamClient(EndPoint ep, long bufferSize = 1024, InitializeImmutablePacketMethod packetMethod = null)
+        public TcpStreamClient(EndPoint ep, ulong bufferSize = 1024, InitializeImmutablePacketMethod packetMethod = null)
         {
             Buffer = new byte[bufferSize];
             Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -22,7 +22,11 @@ namespace EasyPacketSharp.Clients
                 CreatePacketMethod = CreateStandardPacket;
             Connect(ep);
         }
-        public TcpStreamClient(IPAddress ip, int port, long bufferSize = 1024) : this(new IPEndPoint(ip, port), bufferSize) { }
+
+        public TcpStreamClient(IPAddress ip, ushort port, ulong bufferSize = 1024)
+            : this(new IPEndPoint(ip, port), bufferSize)
+        {
+        }
 
 
         private IImmutablePacket CreateStandardPacket(byte[] bytes, Encoding enc)
@@ -47,21 +51,58 @@ namespace EasyPacketSharp.Clients
         public void SendPacket(IPacket p)
         {
             Socket.Send(p.Lock());
-            if(p.Locked)
+            if (p.Locked)
                 p.Unlock();
+        }
+
+        public void ReceivePackets()
+        {
+            Socket.BeginReceive(Buffer, 0, Buffer.Length, SocketFlags.None, OnReceive, null);
+        }
+
+        public void Close()
+        {
+            if (State != ConnectionState.Connected) return;
+
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        void IDisposable.Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected void Dispose(bool disposing)
+        {
+            if (State != ConnectionState.Connected) return;
+            if (disposing)
+            { 
+                Socket.Shutdown(SocketShutdown.Both);
+                Socket.Close();
+            }
+            State = ConnectionState.Disconnected;
         }
 
         #endregion ISocket Implementation
 
         #region IClient Implementation
 
-        public void Connect(IPAddress host, ushort port) { Connect(new IPEndPoint(host, port)); }
-        public void Connect(ushort port, IPAddress host) { Connect(new IPEndPoint(host, port)); }
+        public void Connect(IPAddress host, ushort port)
+        {
+            Connect(new IPEndPoint(host, port));
+        }
+
+        public void Connect(ushort port, IPAddress host)
+        {
+            Connect(new IPEndPoint(host, port));
+        }
 
         public void Connect(ushort port, string host)
         {
             var hostEntries = Dns.GetHostEntry(host);
-            if(hostEntries.AddressList.Length < 1) throw new ParseHostException($"Could not parse host {host}");
+            if (hostEntries.AddressList.Length < 1) throw new ParseHostException($"Could not parse host {host}");
             Connect(hostEntries.AddressList[0], port);
         }
 
@@ -69,18 +110,25 @@ namespace EasyPacketSharp.Clients
         {
             if (TryConnectProtocol(host)) return;
             if (TryConnectSeparate(host)) return;
-            throw new ParseHostException($"Could not parse host because either port, protocol or ip could not be parsed from {host}" + Environment.NewLine + "See remarks for additional formatting information");
+            throw new ParseHostException(
+                $"Could not parse host because either port, protocol or ip could not be parsed from {host}" +
+                Environment.NewLine + "See remarks for additional formatting information");
         }
+
         public void Connect(EndPoint ep)
         {
-            if (State != ConnectionState.Initialized) throw new ConnectErrorException($"Cannot connect from state {State}");
+            if (State != ConnectionState.Initialized)
+                throw new ConnectErrorException($"Cannot connect from state {State}");
             Socket.BeginConnect(ep, BeginConnectCallback, null);
         }
+
         public void Connect(ushort port, string host, uint numberBase) //TODO: Handle IPV6
         {
             Connect(port, host.ParseIPFromBase(numberBase));
             if (!TryConnectSeparate(host, numberBase))
-                throw new ParseHostException($"Could not parse host because either port, protocol or ip could not be parsed from {host}" + Environment.NewLine + "See remarks for additional formatting information");
+                throw new ParseHostException(
+                    $"Could not parse host because either port, protocol or ip could not be parsed from {host}" +
+                    Environment.NewLine + "See remarks for additional formatting information");
         }
 
         public void Connect(string host, uint numberBase) //TODO: Handle IPV6
@@ -88,14 +136,17 @@ namespace EasyPacketSharp.Clients
             if (TryConnectProtocol(host, numberBase)) return;
             if (TryConnectSeparate(host, numberBase)) return;
 
-            throw new ParseHostException($"Could not parse host because either port, protocol or ip could not be parsed from {host}" + Environment.NewLine + "See remarks for additional formatting information");
+            throw new ParseHostException(
+                $"Could not parse host because either port, protocol or ip could not be parsed from {host}" +
+                Environment.NewLine + "See remarks for additional formatting information");
         }
 
         #region Protocols
 
         private void ConnectProtocol(string protocol, string ip)
         {
-            if(!TryConnectProtocol(protocol, ip)) throw new ParseHostException($"Invalid protocol '{protocol}' supplied ");
+            if (!TryConnectProtocol(protocol, ip))
+                throw new ParseHostException($"Invalid protocol '{protocol}' supplied ");
         }
 
         private bool TryConnectProtocol(string protocol, string ip)
@@ -137,7 +188,8 @@ namespace EasyPacketSharp.Clients
                     break;
 
                 case "dhcp":
-                    port = 67; //See: https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol Client uses 67 to connect to server, Server uses 68 to connect to client
+                    port = 67;
+                    //See: https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol Client uses 67 to connect to server, Server uses 68 to connect to client
                     break;
 
                 case "tftp":
@@ -256,17 +308,19 @@ namespace EasyPacketSharp.Clients
         private bool TryConnectProtocol(string host)
         {
             var split = host.Split(new[] { "://" }, StringSplitOptions.RemoveEmptyEntries);
-            if (split.Length > 2) throw new ParseHostException($"Invalid format supplied, detected more than one :// in the string {host}");
+            if (split.Length > 2)
+                throw new ParseHostException($"Invalid format supplied, detected more than one :// in the string {host}");
             if (split.Length != 2) return false;
 
             ConnectProtocol(split[0].Trim(), split[1].Trim());
             return true;
         }
-        
+
         private bool TryConnectProtocol(string host, uint numberBase)
         {
             var split = host.Split(StringExtension.ProtocolSeparators, StringSplitOptions.RemoveEmptyEntries);
-            if (split.Length > 2) throw new ParseHostException($"Invalid format supplied, detected more than one :// in the string {host}");
+            if (split.Length > 2)
+                throw new ParseHostException($"Invalid format supplied, detected more than one :// in the string {host}");
             if (split.Length != 2) return false;
             var ip = split[1].ParseIPFromBase(numberBase);
             ConnectProtocol(split[0], ip);
@@ -322,12 +376,13 @@ namespace EasyPacketSharp.Clients
         #endregion IClient Implementation
 
         #region Private Async Implementation Pattern
+
         private void BeginConnectCallback(IAsyncResult ar)
         {
-            if(!Socket.Connected) throw new ConnectErrorException("The internal socket refused the connection.");
+            if (!Socket.Connected) throw new ConnectErrorException("The internal socket refused the connection.");
             State = ConnectionState.Connected;
             OnConnection?.Invoke(this);
-            Socket.BeginReceive(Buffer, 0, Buffer.Length, SocketFlags.None, OnReceive, null);
+            ReceivePackets();
         }
 
         private void OnReceive(IAsyncResult ar)
@@ -347,12 +402,27 @@ namespace EasyPacketSharp.Clients
 
             var buf = new byte[bytesReceived];
             System.Buffer.BlockCopy(Buffer, 0, buf, 0, buf.Length);
-            Socket.BeginReceive(Buffer, 0, Buffer.Length, SocketFlags.None, OnReceive, null); //Start new receive as fast as possible
 
-            if (CreatePacketMethod == null) throw new InvalidClientStateException("The user has made runtime edits to the client that has put it in an invalid state. Make sure CreatePacketMethod always has a value");
-            
+            try
+            {
+                Socket.BeginReceive(Buffer, 0, Buffer.Length, SocketFlags.None, OnReceive, null); //Start new receive as fast as possible
+            }
+            catch (SocketException e)
+            {
+                if (e.Message.ToLowerInvariant().Contains("an existing connection was forcibly closed by the remote host"))
+                {
+                    OnDisconnection?.Invoke(this);
+                    return;
+                }
+            }
+
+            if (CreatePacketMethod == null)
+                throw new InvalidClientStateException(
+                    "The user has made runtime edits to the client that has put it in an invalid state. Make sure CreatePacketMethod always has a value");
+
             OnPacket?.Invoke(this, CreatePacketMethod(buf, Encoding));
         }
+
         #endregion Private Async Implementation Pattern
     }
 }

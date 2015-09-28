@@ -7,7 +7,14 @@ namespace EasyPacketSharp.Generic
 {
     public class MutablePacket : IMutablePacket
     {
+        /// <summary>
+        ///     <seealso cref="IPacket.Length"/>
+        /// </summary>
         public ulong Length => (ulong)Writer.BaseStream.Length;
+
+        /// <summary>
+        ///     <seealso cref="IPacket.Position"/>
+        /// </summary>
         public ulong Position => (ulong)Writer.BaseStream.Position;
 
         private BinaryWriter Writer { get; set; }

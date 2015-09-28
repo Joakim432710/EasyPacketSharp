@@ -1,4 +1,5 @@
-﻿using System.Net.Sockets;
+﻿using System;
+using System.Net.Sockets;
 using System.Text;
 
 namespace EasyPacketSharp.Abstract
@@ -9,16 +10,11 @@ namespace EasyPacketSharp.Abstract
 
     public delegate void OnConnectionChangedMethod(ISocket obj);
 
-    public delegate ISocket InitializeSocketMethod(Socket s);
+    public delegate ISocket InitializeSocketMethod(Socket s, ulong bufferSize, InitializeImmutablePacketMethod packetMethod);
 
-    public interface ISocket
+    public interface ISocket : IDisposable
     {
         Socket Socket { get; }
-
-        /// <summary>
-        ///     Occurs whenever a connection has been established using the socket
-        /// </summary>
-        event OnConnectionChangedMethod OnConnection;
 
         /// <summary>
         ///     Occurs whenever a connection has been disconnected on the socket
@@ -45,5 +41,18 @@ namespace EasyPacketSharp.Abstract
         /// </summary>
         /// <param name="packet">The packet to write</param>
         void SendPacket(IPacket packet);
+
+        /// <summary>
+        ///     Starts a receive-loop that listens for incoming packets and forwards them to event handles
+        /// </summary>
+        void ReceivePackets();
+
+        /// <summary>
+        ///     Closes this socket allowing no further comminication with or using the socket
+        /// </summary>
+        /// <remarks>
+        ///     Should dispose the instance
+        /// </remarks>
+        void Close();
     }
 }

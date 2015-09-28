@@ -7,8 +7,19 @@ namespace EasyPacketSharp.Generic
 {
     public class ImmutablePacket : IImmutablePacket
     {
+        /// <inheritdoc />
+        /// <summary>
+        ///     <seealso cref="IPacket.Length"/>
+        /// </summary>
         public ulong Length => (ulong)Reader.BaseStream.Length;
+
+        /// <inheritdoc />
+        /// <summary>
+        ///     <seealso cref="IPacket.Position"/>
+        /// </summary>
         public ulong Position => (ulong)Reader.BaseStream.Position;
+
+        /// <inheritdoc />
         public bool Locked { get; private set; }
 
         private BinaryReader Reader { get; set; }
@@ -38,7 +49,7 @@ namespace EasyPacketSharp.Generic
         {
             if (Locked) throw new InvalidOperationException("The buffer mutation is already locked.");
             Locked = true;
-            return ((MemoryStream) Reader.BaseStream).ToArray();
+            return ((MemoryStream)Reader.BaseStream).ToArray();
         }
 
         public void Unlock()
@@ -116,7 +127,8 @@ namespace EasyPacketSharp.Generic
 
         public string ReadStandardString()
         {
-            return new string(Reader.ReadChars(ReadUShort()));
+            var bytes = Reader.ReadBytes(Reader.ReadUInt16());
+            return Encoding.GetString(bytes);
         }
     }
 }

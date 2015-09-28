@@ -5,6 +5,11 @@ namespace EasyPacketSharp.Abstract
     public interface IClient : ISocket
     {
         /// <summary>
+        ///     Occurs whenever a connection has been established using the socket
+        /// </summary>
+        event OnConnectionChangedMethod OnConnection;
+
+        /// <summary>
         ///     Opens an IP connection to <paramref name="host"/> using port <paramref name="port"/>
         ///     <seealso cref="Connect(ushort, IPAddress)"/>
         ///     <seealso cref="Connect(EndPoint)"/>
