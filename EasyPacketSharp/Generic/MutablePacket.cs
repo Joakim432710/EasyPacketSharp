@@ -53,80 +53,105 @@ namespace EasyPacketSharp.Generic
         public void Write(byte[] bytes)
         {
             while (Locked) { }
-            Array.ForEach(bytes, WriteByte);
+            Locked = true;
+            Array.ForEach(bytes, Writer.Write);
+            Locked = false;
         }
 
         public void WriteInt(int val)
         {
             while (Locked) { }
+            Locked = true;
             Writer.Write(val);
+            Locked = false;
         }
 
         public void WriteUInt(uint val)
         {
             while (Locked) { }
+            Locked = true;
             Writer.Write(val);
+            Locked = false;
         }
 
         public void WriteLong(long val)
         {
             while (Locked) { }
+            Locked = true;
             Writer.Write(val);
+            Locked = false;
         }
 
         public void WriteULong(ulong val)
         {
             while (Locked) { }
+            Locked = true;
             Writer.Write(val);
+            Locked = false;
         }
 
         public void WriteShort(short val)
         {
             while (Locked) { }
             Writer.Write(val);
+            Locked = false;
         }
 
         public void WriteUShort(ushort val)
         {
             while (Locked) { }
+            Locked = true;
             Writer.Write(val);
+            Locked = false;
         }
 
         public void WriteByte(byte val)
         {
             while (Locked) { }
+            Locked = true;
             Writer.Write(val);
+            Locked = false;
         }
 
         public void WriteSByte(sbyte val)
         {
             while (Locked) { }
+            Locked = true;
             Writer.Write(val);
+            Locked = false;
         }
 
         public void WriteFloat(float val)
         {
             while (Locked) { }
+            Locked = true;
             Writer.Write(val);
+            Locked = false;
         }
 
         public void WriteDouble(double val)
         {
             while (Locked) { }
+            Locked = true;
             Writer.Write(val);
+            Locked = false;
         }
 
         public void WriteString(string str)
         {
             while (Locked) { }
+            Locked = true;
             Writer.Write(str);
+            Locked = false;
         }
 
         public void WriteStandardString(string str)
         {
             while (Locked) { }
-            WriteUShort((ushort) str.Length);
-            WriteString(str);
+            Locked = true;
+            Writer.Write((ushort) str.Length);
+            Writer.Write(Encoding.GetBytes(str));
+            Locked = false;
         }
     }
 }
