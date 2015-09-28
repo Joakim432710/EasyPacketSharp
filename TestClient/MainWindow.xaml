@@ -1,0 +1,38 @@
+﻿<Window x:Class="ChatClient.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ChatClient"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="350" Width="525" d:DataContext="{d:DesignInstance local:ViewModel}">
+
+    <Window.Resources>
+        <local:IsSelfToColumnConverter x:Key="IsSelfToHorizontalAlignmentConverter" />
+    </Window.Resources>
+
+    <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="0.05*"/>
+            <RowDefinition Height="0.6*"/>
+            <RowDefinition Height="0.2*"/>
+            <RowDefinition Height="0.05*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="0.1*"/>
+            <ColumnDefinition Width="0.8*"/>
+            <ColumnDefinition Width="0.1*"/>
+        </Grid.ColumnDefinitions>
+        <ScrollViewer Name="chatScroll" Grid.Row="1" Grid.Column="1" Margin="10, 10, 0, 10" ScrollChanged="OnScrolled">
+            <ItemsControl ItemsSource="{Binding Messages}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <local:ChatMessage DataContext="{Binding }"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+        <TextBox Name="textField" Grid.Column="1" Grid.Row="2" Background="AliceBlue" KeyDown="TextKeyDown" MaxLines="30"/>
+        <TextBox Name="ipField" Text="127.0.0.1:13337" Grid.Column="1" Grid.Row="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Top" KeyDown="IPKeyDown"/>
+    </Grid>
+</Window>

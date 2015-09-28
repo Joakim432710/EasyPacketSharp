@@ -246,7 +246,6 @@ namespace EasyPacketSharpTests
         public async Task TestPacketWriteFloat()
         {
             const int size = sizeof(float);
-            const int lastIndex = size - 1;
 
             var packet = new MutablePacket();
             packet.WriteFloat(2.0f);

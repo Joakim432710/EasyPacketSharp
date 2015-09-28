@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Text;
 using EasyPacketSharp.Abstract;
 
@@ -28,9 +29,15 @@ namespace EasyPacketSharp.Generic
 
         public void SendPacket(IPacket packet)
         {
-            Socket.Send(packet.Lock());
-            if(packet.Locked)
+            SendBytes(packet.Lock());
+            if (packet.Locked)
                 packet.Unlock();
+        }
+
+        private void SendBytes(byte[] bytes)
+        {
+            try { Socket.Send(bytes); }
+            catch (InvalidOperationException) { SendBytes(bytes); }
         }
 
         /// <summary>

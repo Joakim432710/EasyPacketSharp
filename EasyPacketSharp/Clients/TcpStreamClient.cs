@@ -12,21 +12,23 @@ namespace EasyPacketSharp.Clients
     {
         private ConnectionState State { get; set; }
         private byte[] Buffer { get; }
-
-        public TcpStreamClient(EndPoint ep, ulong bufferSize = 1024, InitializeImmutablePacketMethod packetMethod = null)
+        public TcpStreamClient(ulong bufferSize = 1024, InitializeImmutablePacketMethod packetMethod = null)
         {
             Buffer = new byte[bufferSize];
             Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             State = ConnectionState.Initialized;
             if (packetMethod == null)
                 CreatePacketMethod = CreateStandardPacket;
+        }
+
+        public TcpStreamClient(EndPoint ep, ulong bufferSize = 1024, InitializeImmutablePacketMethod packetMethod = null) : this(bufferSize, packetMethod)
+        {
             Connect(ep);
         }
 
         public TcpStreamClient(IPAddress ip, ushort port, ulong bufferSize = 1024)
             : this(new IPEndPoint(ip, port), bufferSize)
-        {
-        }
+        { }
 
 
         private IImmutablePacket CreateStandardPacket(byte[] bytes, Encoding enc)
@@ -48,11 +50,17 @@ namespace EasyPacketSharp.Clients
 
         public event OnPacketMethod OnPacket;
 
-        public void SendPacket(IPacket p)
+        public void SendPacket(IPacket packet)
         {
-            Socket.Send(p.Lock());
-            if (p.Locked)
-                p.Unlock();
+            SendBytes(packet.Lock());
+            if (packet.Locked)
+                packet.Unlock();
+        }
+
+        private void SendBytes(byte[] bytes)
+        {
+            try { Socket.Send(bytes); }
+            catch (InvalidOperationException) { SendBytes(bytes); }
         }
 
         public void ReceivePackets()
@@ -101,6 +109,14 @@ namespace EasyPacketSharp.Clients
 
         public void Connect(ushort port, string host)
         {
+            try
+            {
+                Connect(new IPEndPoint(IPAddress.Parse(host), port));
+                return; //Successful connect
+            }
+            catch (FormatException) { }
+            catch(SocketException) { }
+
             var hostEntries = Dns.GetHostEntry(host);
             if (hostEntries.AddressList.Length < 1) throw new ParseHostException($"Could not parse host {host}");
             Connect(hostEntries.AddressList[0], port);
@@ -340,8 +356,8 @@ namespace EasyPacketSharp.Clients
             foreach (var val in split)
             {
                 var final = val.Trim();
-                var segments = final.Split(StringExtension.HostPortSeparators);
-                if (segments.Length < 1)
+                var segments = final.Split(StringExtension.AddressSeparators);
+                if (segments.Length < 2)
                     port = ushort.Parse(final);
                 else
                     ip = final;
@@ -360,8 +376,8 @@ namespace EasyPacketSharp.Clients
             foreach (var val in split)
             {
                 var final = val.Trim();
-                var segments = final.Split(StringExtension.HostPortSeparators);
-                if (segments.Length < 1)
+                var segments = final.Split(StringExtension.AddressSeparators);
+                if (segments.Length < 2)
                     port = ushort.Parse(final);
                 else
                     ip = final.ParseIPFromBase(numberBase);
